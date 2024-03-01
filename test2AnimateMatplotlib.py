@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
 # Create random input and output data
-x = np.linspace(-math.pi, math.pi, 20000)
+x = np.linspace(-math.pi, math.pi, 2000)
 y = np.sin(x)
 
 # Randomly initialize weights
@@ -14,7 +14,7 @@ c = np.random.randn()
 d = np.random.randn()
 
 t = 0
-learning_rate = 0.2e-6
+learning_rate = 2e-6
 
 # Create a figure and axis for the animation
 fig, ax = plt.subplots()
