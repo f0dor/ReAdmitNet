@@ -1,7 +1,7 @@
 import pandas as pd
 
 ## Promjenit ovu liniju za neki drugi csv file
-originalpath = "./Tim_22/Podaci/test.csv"
+originalpath = "./Tim_22/Podaci/train.csv"
 
 savepath = originalpath.split(".csv")[0] + "_modified.csv"
 
@@ -57,7 +57,8 @@ def main():
     df['Dx_Discharge'] = df['Dx_Discharge'].fillna(mode_dx_discharge)
     df['Discharge_Status'] = df['Discharge_Status'].fillna(mode_discharge_status)
     df['Education'] = df['Education'].fillna(mode_education)
-    df['Current_Work_Status'] = df.apply(replace_missing, args=(mode_work_status,), axis=1)
+    df['Current_Work_Status'] = df.apply(lambda row: replace_missing(row, mode_work_status), axis=1)
+    df = df[df['Discharge_Status'] != 'UMRO (NIJE OBDUCIRAN)']
 
     df = remove_trailing_whitespace(df)
 
@@ -68,10 +69,10 @@ def replace_missing(row, mode_work_status):
     age = row['Age_Group']
     work_status = row['Current_Work_Status']
 
-    if pd.notnull(age) and age > 65:
+    if pd.isna(work_status) and age > 65:
         return "UMIROVLJENIK"
-    elif pd.isnull(work_status):
-        return mode_work_status
+    elif pd.isna(work_status) or work_status == '':
+        return "REDOVAN POSAO"
     else:
         return work_status
 
