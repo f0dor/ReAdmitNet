@@ -1,7 +1,7 @@
 import pandas as pd
 
 ## Promjenit ovu liniju za neki drugi csv file
-originalpath = "./Tim_22/Podaci/forTesting.csv"
+originalpath = "./Tim_22/Podaci/test.csv"
 
 savepath = originalpath.split(".csv")[0] + "_modified.csv"
 
@@ -58,6 +58,8 @@ def main():
     df['Discharge_Status'] = df['Discharge_Status'].fillna(mode_discharge_status)
     df['Education'] = df['Education'].fillna(mode_education)
     df['Current_Work_Status'] = df.apply(replace_missing, args=(mode_work_status,), axis=1)
+
+    df = remove_trailing_whitespace(df)
 
     df.to_csv(savepath, index=False)
 
@@ -116,6 +118,11 @@ def replace_gender(row, average_male_weight, average_female_weight):
             return 'Ž'
     else:
         return row['Gender']
+
+def remove_trailing_whitespace(df):
+    object_columns = df.select_dtypes(include=['object']).columns
+    df[object_columns] = df[object_columns].apply(lambda x: x.str.rstrip() if x.dtype == 'object' else x)
+    return df
 
 
 if __name__ == "__main__":
