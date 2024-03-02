@@ -14,11 +14,11 @@ for column in data.columns:
     if data[column].dtype == 'object':
         data[column] = le.fit_transform(data[column])
 
-data.to_csv('Tim_22/Podaci/tokenized_file.csv', index=False)
+# data.to_csv('Tim_22/Podaci/tokenized_file.csv', index=False)
 
-print("Data saved to 'tokenized_file.csv'")
+# print("Data saved to 'tokenized_file.csv'")
 
-data = pd.read_csv('Tim_22/Podaci/tokenized_file.csv')
+# data = pd.read_csv('Tim_22/Podaci/tokenized_file.csv')
 
 X = data.drop(columns=['Label'])
 y = data['Label']
@@ -44,7 +44,7 @@ X_resampled, y_resampled = smote.fit_resample(X, y)
 balanced_data = pd.concat([pd.DataFrame(X_resampled, columns=X.columns), pd.Series(y_resampled, name='Label')], axis=1)
 
 # Save balanced dataset to a new CSV file
-balanced_data.to_csv('Tim_22/Podaci/balanced_dataset_smote.csv', index=False)
+# balanced_data.to_csv('Tim_22/Podaci/balanced_dataset_smote.csv', index=False)
 
 # Visualize class distribution before and after balancing
 plt.figure(figsize=(10, 5))
