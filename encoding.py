@@ -11,8 +11,10 @@ def main():
     df_train = pd.read_csv(train_path)
     df_test = pd.read_csv(test_path)
     df_train = df_train.iloc[:, 1:]
+    labels_train = df_train['Label']
+    df_train = df_train.drop('Label', axis=1)
     df_test = df_test.iloc[:, 1:-2]
-    columns = df_test.columns.tolist()
+    columns = df_train.columns.tolist()
     
     data_types = df_train.dtypes
 
@@ -54,6 +56,8 @@ def main():
             scaled_data_test = scaler.transform(df_test[[column]])
             df_train[column] = scaled_data_train
             df_test[column] = scaled_data_test
+
+    df_train['Label'] = labels_train
 
     # Save the encoded dataframe to a new CSV file
     df_train.to_csv(savepath_train, index=False)
