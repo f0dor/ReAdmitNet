@@ -51,7 +51,7 @@ for epoch in range(epochs):
     model.train()
     y_logits = model(X_train).squeeze()
     y_pred = torch.round(torch.sigmoid(y_logits))
-    percentageOfZeroes = y_pred.sum().item() / len(y_pred)
+    percentageOfOnes = (y_pred.sum().item() / len(y_pred)) * 100
     loss = loss_fn(y_logits, y_train)
     correct_train = torch.eq(y_pred, y_train).sum().item()
     total_train = len(y_train)
@@ -68,4 +68,4 @@ for epoch in range(epochs):
         acc_test = (correct_test / total_test) * 100
         loss_test = loss_fn(y_logits_test, y_test)
     
-    print(f"Epoch [{epoch}/{epochs}], Ones(%Jedinica): {percentageOfZeroes},Loss: {loss.item():.4f}, Accuracy: {acc:.2f}%, Test Loss: {loss_test.item():.4f}, Test Accuracy: {acc_test:.2f}%")
+    print(f"Epoch [{epoch}/{epochs}], Ones(% of 1): {percentageOfOnes:.4f},Loss: {loss.item():.4f}, Accuracy: {acc:.2f}%, Test Loss: {loss_test.item():.4f}, Test Accuracy: {acc_test:.2f}%")
