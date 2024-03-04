@@ -9,10 +9,10 @@ def accuracy_fn(y_true, y_pred):
   acc = (correct/len(y_pred)) * 100
   return acc
 
-data = pd.read_csv('./Tim_22/Podaci/train_modified_encoded.csv')
+data = pd.read_csv('./Tim_22/Podaci/train_modified_encoded1.csv')
 
-features = data.drop('Label', axis=1)
 labels = data['Label']
+features = data.drop('Label', axis=1)
 
 X_train, X_test, y_train, y_test = train_test_split(features, labels, test_size=0.2, random_state=42)
 
@@ -23,8 +23,7 @@ y_test = torch.tensor(y_test.values, dtype=torch.float32)
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
-# print(X_train[:5], y_train[:100])
-
+# print(X_train[:5], y_train[:5])
 class Model(nn.Module):
     def __init__(self):
         super(Model, self).__init__()
@@ -47,7 +46,7 @@ optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
 X_train, y_train = X_train.to(device), y_train.to(device)
 X_test, y_test = X_test.to(device), y_test.to(device)
 
-epochs = 100
+epochs = 10000
 for epoch in range(epochs):
     model.train()
     y_logits = model(X_train).squeeze()

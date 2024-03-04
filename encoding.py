@@ -1,11 +1,12 @@
 import pandas as pd
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder, StandardScaler
+from imblearn.over_sampling import SMOTE
 
 ## Promjenit ovu liniju za neki drugi csv file
 train_path = "./Tim_22/Podaci/train_modified.csv"
 test_path = "./Tim_22/Podaci/test_modified.csv"
-savepath_train = train_path.split(".csv")[0] + "_encoded.csv"
-savepath_test = test_path.split(".csv")[0] + "_encoded.csv"
+savepath_train = train_path.split(".csv")[0] + "_encoded1.csv"
+savepath_test = test_path.split(".csv")[0] + "_encoded1.csv"
 
 def main():
     df_train = pd.read_csv(train_path)
@@ -58,6 +59,11 @@ def main():
             df_test[column] = scaled_data_test
 
     df_train['Label'] = labels_train
+
+    # Apply SMOTE to over-sample the minority class
+    smote = SMOTE()
+    X_train, y_train = smote.fit_resample(df_train.drop('Label', axis=1), df_train['Label'])
+    df_train = pd.concat([X_train, y_train], axis=1)
 
     # Save the encoded dataframe to a new CSV file
     df_train.to_csv(savepath_train, index=False)
