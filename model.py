@@ -70,7 +70,7 @@ for epoch in range(epochs):
         acc_test = (correct_test / total_test) * 100
         loss_test = loss_fn(y_logits_test, y_test)
     
-    print(f"Epoch [{epoch}/{epochs}], Ones(% of 1): {percentageOfOnes:.4f},Loss: {loss.item():.4f}, Accuracy: {acc:.2f}%, Test Loss: {loss_test.item():.4f}, Test Accuracy: {acc_test:.2f}%\n")
+    print(f"Epoch [{epoch}/{epochs}], Ones(% of 1): {percentageOfOnes:.4f},Loss: {loss.item():.4f}, Accuracy: {acc:.2f}%, Test Loss: {loss_test.item():.4f}, Test Accuracy: {acc_test:.2f}%")
 end_time = time.time()
 elapsed_time = end_time - start_time
 print(f"Training time: {elapsed_time:.2f}s")
