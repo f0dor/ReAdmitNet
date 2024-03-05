@@ -3,13 +3,15 @@ import torch.nn as nn
 import sklearn
 import pandas as pd
 from sklearn.model_selection import train_test_split
+import time
 
-def accuracy_fn(y_true, y_pred):
-  correct = torch.eq(y_true, y_pred).sum().item() 
-  acc = (correct/len(y_pred)) * 100
-  return acc
+device = "cuda" if torch.cuda.is_available() else "cpu"
 
 data = pd.read_csv('./Tim_22/Podaci/train_modified_encoded1.csv')
+set_to_evaluate = pd.read_csv('./Tim_22/Podaci/test_modified_encoded1.csv')
+
+X_eval = torch.tensor(set_to_evaluate.drop('Label', axis=1).values, dtype=torch.float32)
+X_eval = X_eval.to(device)
 
 labels = data['Label']
 features = data.drop('Label', axis=1)
@@ -21,9 +23,8 @@ y_train = torch.tensor(y_train.values, dtype=torch.float32)
 X_test = torch.tensor(X_test.values, dtype=torch.float32)
 y_test = torch.tensor(y_test.values, dtype=torch.float32)
 
-device = "cuda" if torch.cuda.is_available() else "cpu"
+print(X_train.shape, X_eval.shape)
 
-# print(X_train[:5], y_train[:5])
 class Model(nn.Module):
     def __init__(self):
         super(Model, self).__init__()
@@ -46,7 +47,8 @@ optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
 X_train, y_train = X_train.to(device), y_train.to(device)
 X_test, y_test = X_test.to(device), y_test.to(device)
 
-epochs = 10000
+epochs = 100
+start_time = time.time()
 for epoch in range(epochs):
     model.train()
     y_logits = model(X_train).squeeze()
@@ -68,4 +70,18 @@ for epoch in range(epochs):
         acc_test = (correct_test / total_test) * 100
         loss_test = loss_fn(y_logits_test, y_test)
     
-    print(f"Epoch [{epoch}/{epochs}], Ones(% of 1): {percentageOfOnes:.4f},Loss: {loss.item():.4f}, Accuracy: {acc:.2f}%, Test Loss: {loss_test.item():.4f}, Test Accuracy: {acc_test:.2f}%")
+    print(f"Epoch [{epoch}/{epochs}], Ones(% of 1): {percentageOfOnes:.4f},Loss: {loss.item():.4f}, Accuracy: {acc:.2f}%, Test Loss: {loss_test.item():.4f}, Test Accuracy: {acc_test:.2f}%\n")
+end_time = time.time()
+elapsed_time = end_time - start_time
+print(f"Training time: {elapsed_time:.2f}s")
+torch.save(model.state_dict(), 'trained_model.pth')
+
+model.eval()
+with torch.no_grad():
+    y_logits_eval = model(X_eval).squeeze()
+    y_pred_eval = torch.sigmoid(y_logits_eval)
+    y_pred_eval = y_pred_eval.to('cpu')
+    set_to_evaluate['Probability_0'] = 1 - y_pred_eval
+    set_to_evaluate['Probability_1'] = y_pred_eval
+    set_to_evaluate = set_to_evaluate[['Probability_0', 'Probability_1', 'Label']]
+    set_to_evaluate.to_csv('evaluation_results.csv', index=False)
