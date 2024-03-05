@@ -47,7 +47,7 @@ optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
 X_train, y_train = X_train.to(device), y_train.to(device)
 X_test, y_test = X_test.to(device), y_test.to(device)
 
-epochs = 100
+epochs = 10000
 start_time = time.time()
 for epoch in range(epochs):
     model.train()
@@ -83,5 +83,6 @@ with torch.no_grad():
     y_pred_eval = y_pred_eval.to('cpu')
     set_to_evaluate['Probability_0'] = 1 - y_pred_eval
     set_to_evaluate['Probability_1'] = y_pred_eval
+    set_to_evaluate['Label'] = torch.round(y_pred_eval).numpy()
     set_to_evaluate = set_to_evaluate[['Probability_0', 'Probability_1', 'Label']]
     set_to_evaluate.to_csv('evaluation_results.csv', index=False)
