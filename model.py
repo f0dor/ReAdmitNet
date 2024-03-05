@@ -83,6 +83,6 @@ with torch.no_grad():
     y_pred_eval = y_pred_eval.to('cpu')
     set_to_evaluate['Probability_0'] = 1 - y_pred_eval
     set_to_evaluate['Probability_1'] = y_pred_eval
-    set_to_evaluate['Label'] = torch.round(y_pred_eval).numpy()
+    set_to_evaluate['Label'] = torch.round(y_pred_eval).numpy().astype(int)
     set_to_evaluate = set_to_evaluate[['Probability_0', 'Probability_1', 'Label']]
     set_to_evaluate.to_csv('evaluation_results.csv', index=False)
