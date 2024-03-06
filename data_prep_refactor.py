@@ -1,7 +1,7 @@
 import pandas as pd
 
 ## Promjenit ovu liniju za neki drugi csv file
-originalpath = "./Tim_22/Podaci/train.csv"
+originalpath = "./Tim_22/Podaci/test.csv"
 
 savepath = originalpath.split(".csv")[0] + "_modified.csv"
 
@@ -14,9 +14,11 @@ def main():
     df['Age_Group'] = df['Age_Group'].apply(calculate_mean).astype('float32')
 
     average_age = df['Age_Group'].mean()
+    average_prev_admission = df['PreviousAdmissionDays'].mean()
     df['Age_Group'] = df['Age_Group'].fillna(average_age).astype('float32')
 
-    df['PreviousAdmissionDays'] = df['PreviousAdmissionDays'].apply(replace_and_convert).astype('float32')
+    average_prev_admission = df[df['PreviousAdmissionDays'] >= 0]['PreviousAdmissionDays'].mean()
+    df['PreviousAdmissionDays'] = df['PreviousAdmissionDays'].apply(lambda x: average_prev_admission if x < 0 else x).astype('float32')
 
     df['LOS'] = df['LOS'].fillna(df['LOS'].mean()).astype('float32')
     df['LOS_ICU'] = df['LOS_ICU'].fillna(df['LOS_ICU'].mean()).astype('float32')
@@ -81,14 +83,6 @@ def calculate_mean(age_range):
     start, end = map(int, age_range.split('-'))
     mean_age = (start + end) / 2
     return mean_age
-
-
-def replace_and_convert(value):
-    if pd.isna(value) or value < 0:
-        return 0.0
-    else:
-        return float(value)
-
 
 def replace_weight(row, average_male_weight, average_female_weight):
     if row['Weight_Discharge'] <= 0 or pd.isna(row['Weight_Discharge']):
