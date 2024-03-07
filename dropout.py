@@ -16,13 +16,6 @@ X_eval = X_eval.to(device)
 
 X = data.drop(columns=['Label'])
 y = data['Label']
-
-# Compute class weights
-num_negatives = (y == 0).sum().item()
-num_positives = (y == 1).sum().item()
-total_samples = len(y)
-class_weights = torch.tensor([total_samples / (2 * num_negatives), total_samples / (2 * num_positives)]).to(device)
-print(f"Class weights: {class_weights}")
 class Model(nn.Module):
     def __init__(self):
         super(Model, self).__init__()
