@@ -19,17 +19,17 @@ y = data['Label']
 class Model(nn.Module):
     def __init__(self):
         super(Model, self).__init__()
-        self.fc1 = nn.Linear(in_features=323, out_features=256)
-        self.fc2 = nn.Linear(in_features=256, out_features=128)
-        self.fc3 = nn.Linear(in_features=128, out_features=1)
+        self.fc1 = nn.Linear(in_features=323, out_features=32)
+        #self.fc2 = nn.Linear(in_features=256, out_features=128)
+        self.fc3 = nn.Linear(in_features=32, out_features=1)
         self.relu = nn.ReLU()
         self.dropout = nn.Dropout(p=0.5)
 
     def forward(self, x):
         x = self.relu(self.fc1(x))
         x = self.dropout(x)
-        x = self.relu(self.fc2(x))
-        x = self.dropout(x)
+        #x = self.relu(self.fc2(x))
+        #x = self.dropout(x)
         x = self.fc3(x)
         return x
 
@@ -41,7 +41,7 @@ optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
 X = torch.tensor(X.values, dtype=torch.float32).to(device)
 y = torch.tensor(y.values, dtype=torch.float32).to(device)
 
-epochs = 100
+epochs = 200
 kf = KFold(n_splits=5, shuffle=True, random_state=42)
 start_time = time.time()
 
