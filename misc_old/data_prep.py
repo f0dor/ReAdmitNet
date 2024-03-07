@@ -1,7 +1,7 @@
 import pandas as pd
 
-df_train = pd.read_csv("./Tim_22/Podaci/train.csv")
-df_test = pd.read_csv("./Tim_22/Podaci/test.csv")
+df_train = pd.read_csv("../Tim_22/Podaci/train.csv")
+df_test = pd.read_csv("../Tim_22/Podaci/test.csv")
 
 column_names = df_train.columns.tolist()
 

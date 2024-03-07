@@ -5,18 +5,17 @@ from imblearn.over_sampling import SMOTE, ADASYN
 ## Promjenit ovu liniju za neki drugi csv file
 train_path = "./Tim_22/Podaci/train_modified.csv"
 test_path = "./Tim_22/Podaci/test_modified.csv"
-savepath_train = train_path.split(".csv")[0] + "_encoded2.csv"
-savepath_test = test_path.split(".csv")[0] + "_encoded2.csv"
+savepath_train = train_path.split(".csv")[0] + "_encoded.csv"
+savepath_test = test_path.split(".csv")[0] + "_encoded.csv"
 
-def main():
-    df_train = pd.read_csv(train_path)
-    df_test = pd.read_csv(test_path)
+
+def encoding(df_train, df_test):
     df_train = df_train.iloc[:, 1:]
     labels_train = df_train['Label']
     df_train = df_train.drop('Label', axis=1)
     df_test = df_test.iloc[:, 1:-2]
     columns = df_train.columns.tolist()
-    
+
     data_types = df_train.dtypes
 
     categorical_columns = [column for column, data_type in data_types.items() if data_type == 'object']
@@ -29,7 +28,7 @@ def main():
         test_values = set(unique_values_test[categorical_columns.index(column)])
         if train_values != test_values:
             different_values.extend(list(train_values.symmetric_difference(test_values)))
-    
+
     for value in different_values:
         df_test[value] = 0
 
@@ -44,7 +43,8 @@ def main():
             encoder = OneHotEncoder()
             encoded_data_train = encoder.fit_transform(df_train[[column]])
             encoded_data_test = encoder.transform(df_test[[column]])
-            df_encoded_train = pd.DataFrame(encoded_data_train.toarray(), columns=encoder.get_feature_names_out([column]))
+            df_encoded_train = pd.DataFrame(encoded_data_train.toarray(),
+                                            columns=encoder.get_feature_names_out([column]))
             df_encoded_test = pd.DataFrame(encoded_data_test.toarray(), columns=encoder.get_feature_names_out([column]))
             df_train = pd.concat([df_train, df_encoded_train], axis=1)
             df_test = pd.concat([df_test, df_encoded_test], axis=1)
@@ -66,13 +66,15 @@ def main():
     X_train, y_train = smote.fit_resample(df_train.drop('Label', axis=1), df_train['Label'])
     df_train = pd.concat([X_train, y_train], axis=1)
     '''
-    adasyn = ADASYN()
+    '''adasyn = ADASYN()
     X_train, y_train = adasyn.fit_resample(df_train.drop('Label', axis=1), df_train['Label'])
-    df_train = pd.concat([X_train, y_train], axis=1)
+    df_train = pd.concat([X_train, y_train], axis=1)'''
 
     # Save the encoded dataframe to a new CSV file
     df_train.to_csv(savepath_train, index=False)
     df_test.to_csv(savepath_test, index=False)
+    return df_train, df_test
+
 
 if __name__ == "__main__":
-    main()
+    encoding(df_train=pd.read_csv(train_path), df_test=pd.read_csv(test_path))

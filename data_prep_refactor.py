@@ -1,16 +1,7 @@
 import pandas as pd
 
-## Promjenit ovu liniju za neki drugi csv file
-originalpath = "./Tim_22/Podaci/test.csv"
 
-savepath = originalpath.split(".csv")[0] + "_modified.csv"
-
-
-def main():
-    df = pd.read_csv(originalpath)
-
-    #column_names = df.columns.tolist()
-
+def data_prep(df=pd.read_csv("./Tim_22/Podaci/train.csv"), originalpath="./Tim_22/Podaci/train.csv"):
     df['Age_Group'] = df['Age_Group'].apply(calculate_mean).astype('float32')
 
     average_age = df['Age_Group'].mean()
@@ -18,7 +9,8 @@ def main():
     df['Age_Group'] = df['Age_Group'].fillna(average_age).astype('float32')
 
     average_prev_admission = df[df['PreviousAdmissionDays'] >= 0]['PreviousAdmissionDays'].mean()
-    df['PreviousAdmissionDays'] = df['PreviousAdmissionDays'].apply(lambda x: average_prev_admission if x < 0 else x).astype('float32')
+    df['PreviousAdmissionDays'] = df['PreviousAdmissionDays'].apply(
+        lambda x: average_prev_admission if x < 0 else x).astype('float32')
 
     df['LOS'] = df['LOS'].fillna(df['LOS'].mean()).astype('float32')
     df['LOS_ICU'] = df['LOS_ICU'].fillna(df['LOS_ICU'].mean()).astype('float32')
@@ -64,7 +56,7 @@ def main():
 
     df = remove_trailing_whitespace(df)
 
-    df.to_csv(savepath, index=False)
+    return df, originalpath
 
 
 def replace_missing(row, mode_work_status):
@@ -83,6 +75,7 @@ def calculate_mean(age_range):
     start, end = map(int, age_range.split('-'))
     mean_age = (start + end) / 2
     return mean_age
+
 
 def replace_weight(row, average_male_weight, average_female_weight):
     if row['Weight_Discharge'] <= 0 or pd.isna(row['Weight_Discharge']):
@@ -114,6 +107,7 @@ def replace_gender(row, average_male_weight, average_female_weight):
     else:
         return row['Gender']
 
+
 def remove_trailing_whitespace(df):
     object_columns = df.select_dtypes(include=['object']).columns
     df[object_columns] = df[object_columns].apply(lambda x: x.str.rstrip() if x.dtype == 'object' else x)
@@ -121,4 +115,11 @@ def remove_trailing_whitespace(df):
 
 
 if __name__ == "__main__":
-    main()
+    originalpathtrain = "./Tim_22/Podaci/train.csv"
+    originalpathtest = "./Tim_22/Podaci/test.csv"
+    dff, originalpath = data_prep(df=pd.read_csv("./Tim_22/Podaci/train.csv"), originalpath="./Tim_22/Podaci/train.csv")
+    savepath = originalpath.split(".csv")[0] + "_modified.csv"
+    dff.to_csv(savepath, index=False)
+    dff, originalpath = data_prep(df=pd.read_csv("./Tim_22/Podaci/test.csv"), originalpath="./Tim_22/Podaci/test.csv")
+    savepath = originalpath.split(".csv")[0] + "_modified.csv"
+    dff.to_csv(savepath, index=False)

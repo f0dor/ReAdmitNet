@@ -8,20 +8,22 @@ import time
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
-data = pd.read_csv('./Tim_22/Podaci/train_modified_encoded2.csv')
-set_to_evaluate = pd.read_csv('./Tim_22/Podaci/test_modified_encoded2.csv')
+data = pd.read_csv('./Tim_22/Podaci/train_modified_encoded21.csv')
+set_to_evaluate = pd.read_csv('./Tim_22/Podaci/test_modified_encoded21.csv')
 
 X_eval = torch.tensor(set_to_evaluate.drop('Label', axis=1).values, dtype=torch.float32)
 X_eval = X_eval.to(device)
 
 X = data.drop(columns=['Label'])
 y = data['Label']
+
+
 class Model(nn.Module):
     def __init__(self):
         super(Model, self).__init__()
-        self.fc1 = nn.Linear(in_features=323, out_features=256)
-        self.fc2 = nn.Linear(in_features=256, out_features=128)
-        self.fc3 = nn.Linear(in_features=128, out_features=1)
+        self.fc1 = nn.Linear(in_features=323, out_features=32)
+        self.fc2 = nn.Linear(in_features=32, out_features=16)
+        self.fc3 = nn.Linear(in_features=16, out_features=1)
         self.relu = nn.ReLU()
         self.dropout = nn.Dropout(p=0.5)
 
@@ -32,6 +34,7 @@ class Model(nn.Module):
         x = self.dropout(x)
         x = self.fc3(x)
         return x
+
 
 model = Model().to(device)
 
@@ -53,7 +56,7 @@ for epoch in range(epochs):
     train_accuracies = []
     test_losses = []
     test_accuracies = []
-    
+
     for train_index, test_index in kf.split(X):
         X_train_fold, X_test_fold = X[train_index], X[test_index]
         y_train_fold, y_test_fold = y[train_index], y[test_index]
@@ -65,7 +68,7 @@ for epoch in range(epochs):
 
             X_batch = X_train_fold[start_idx:end_idx]
             y_batch = y_train_fold[start_idx:end_idx]
-            
+
             y_logits = model(X_batch).squeeze()
             y_pred = torch.round(torch.sigmoid(y_logits))
             loss = loss_fn(y_logits, y_batch)
@@ -75,10 +78,10 @@ for epoch in range(epochs):
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-            
+
             train_losses.append(loss.item())
             train_accuracies.append(acc)
-        
+
         with torch.no_grad():
             model.eval()
             y_logits_test = model(X_test_fold).squeeze()
@@ -88,16 +91,18 @@ for epoch in range(epochs):
             acc_test = (correct_test / total_test) * 100
             loss_test = loss_fn(y_logits_test, y_test_fold)
             mcc_val = matthews_corrcoef(y_test_fold.to('cpu').numpy(), y_pred_test.to('cpu').numpy())
-            
+
             test_losses.append(loss_test.item())
             test_accuracies.append(acc_test)
-    
+
     avg_train_loss = sum(train_losses) / len(train_losses)
     avg_train_acc = sum(train_accuracies) / len(train_accuracies)
     avg_test_loss = sum(test_losses) / len(test_losses)
     avg_test_acc = sum(test_accuracies) / len(test_accuracies)
-    
-    print(f"Epoch [{epoch+1}/{epochs}], Train Loss: {avg_train_loss:.4f}, Train Accuracy: {avg_train_acc:.2f}%, Test Loss: {avg_test_loss:.4f}, Test Accuracy: {avg_test_acc:.2f}%, MCC: {mcc_val:.4f}")
+
+    print(
+        f"Epoch [{epoch + 1}/{epochs}], Train Loss: {avg_train_loss:.4f}, Train Accuracy: "
+        f"{avg_train_acc:.2f}%, Test Loss: {avg_test_loss:.4f}, Test Accuracy: {avg_test_acc:.2f}%, MCC: {mcc_val:.4f}")
 
 end_time = time.time()
 elapsed_time = end_time - start_time
@@ -117,4 +122,4 @@ with torch.no_grad():
     set_to_evaluate['Probability_1'] = y_pred_eval
     set_to_evaluate['Label'] = torch.round(y_pred_eval).cpu().numpy().astype(int)
     set_to_evaluate = set_to_evaluate[['Label', 'Probability_0', 'Probability_1']]
-    set_to_evaluate.to_csv('evaluation_results.csv', index=False)
+    set_to_evaluate.to_csv('evaluation_result0.csv', index=False)
