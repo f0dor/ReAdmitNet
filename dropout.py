@@ -48,57 +48,10 @@ optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
 X = torch.tensor(X.values, dtype=torch.float32).to(device)
 y = torch.tensor(y.values, dtype=torch.float32).to(device)
 
-epochs = 50
+epochs = 100
 kf = KFold(n_splits=5, shuffle=True, random_state=42)
 start_time = time.time()
 
-'''
-for epoch in range(epochs):
-    model.train()
-    train_losses = []
-    train_accuracies = []
-    test_losses = []
-    test_accuracies = []
-    
-    for train_index, test_index in kf.split(X):
-        X_train_fold, X_test_fold = X[train_index], X[test_index]
-        y_train_fold, y_test_fold = y[train_index], y[test_index]
-
-        weights = class_weights[y_train_fold.long()]
-        
-        y_logits = model(X_train_fold).squeeze()
-        y_pred = torch.round(torch.sigmoid(y_logits))
-        loss = loss_fn(y_logits, y_train_fold)
-        correct_train = torch.eq(y_pred, y_train_fold).sum().item()
-        total_train = len(y_train_fold)
-        acc = (correct_train / total_train) * 100
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-        
-        train_losses.append(loss.item())
-        train_accuracies.append(acc)
-        
-        with torch.no_grad():
-            model.eval()
-            y_logits_test = model(X_test_fold).squeeze()
-            y_pred_test = torch.round(torch.sigmoid(y_logits_test))
-            correct_test = torch.eq(y_pred_test, y_test_fold).sum().item()
-            total_test = len(y_test_fold)
-            acc_test = (correct_test / total_test) * 100
-            loss_test = loss_fn(y_logits_test, y_test_fold)
-            mcc_val = matthews_corrcoef(y_test_fold.to('cpu').numpy(), y_pred_test.to('cpu').numpy())
-            
-            test_losses.append(loss_test.item())
-            test_accuracies.append(acc_test)
-    
-    avg_train_loss = sum(train_losses) / len(train_losses)
-    avg_train_acc = sum(train_accuracies) / len(train_accuracies)
-    avg_test_loss = sum(test_losses) / len(test_losses)
-    avg_test_acc = sum(test_accuracies) / len(test_accuracies)
-    
-    print(f"Epoch [{epoch+1}/{epochs}], Train Loss: {avg_train_loss:.4f}, Train Accuracy: {avg_train_acc:.2f}%, Test Loss: {avg_test_loss:.4f}, Test Accuracy: {avg_test_acc:.2f}%, MCC: {mcc_val:.4f}")
-'''
 batch_size = 256
 
 for epoch in range(epochs):
