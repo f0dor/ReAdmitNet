@@ -49,7 +49,7 @@ X = torch.tensor(X.values, dtype=torch.float32).to(device)
 y = torch.tensor(y.values, dtype=torch.float32).to(device)
 
 # Define your training and testing loops
-epochs = 4000
+epochs = 5000
 kf = KFold(n_splits=5, shuffle=True, random_state=42)
 start_time = time.time()
 
