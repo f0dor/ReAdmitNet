@@ -118,8 +118,8 @@ if __name__ == "__main__":
     originalpathtrain = "./Tim_22/Podaci/train.csv"
     originalpathtest = "./Tim_22/Podaci/test.csv"
     dff, originalpath = data_prep(df=pd.read_csv("./Tim_22/Podaci/train.csv"), originalpath="./Tim_22/Podaci/train.csv")
-    savepath = originalpath.split(".csv")[0] + "_modified.csv"
+    savepath = originalpath.split(".csv")[0] + "_modified_pesti.csv"
     dff.to_csv(savepath, index=False)
     dff, originalpath = data_prep(df=pd.read_csv("./Tim_22/Podaci/test.csv"), originalpath="./Tim_22/Podaci/test.csv")
-    savepath = originalpath.split(".csv")[0] + "_modified.csv"
+    savepath = originalpath.split(".csv")[0] + "_modified_pesti.csv"
     dff.to_csv(savepath, index=False)

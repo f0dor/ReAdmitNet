@@ -44,12 +44,12 @@ def train_model(df_train_encoded, df_test_encoded):
     model = Model().to(device)
 
     loss_fn = nn.BCEWithLogitsLoss()
-    optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
+    optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
 
     X_train, y_train = X_train.to(device), y_train.to(device)
     X_test, y_test = X_test.to(device), y_test.to(device)
 
-    epochs = 10000
+    epochs = 8000
     kf = KFold(n_splits=5, shuffle=True, random_state=42)
     start_time = time.time()
 
@@ -86,7 +86,7 @@ def train_model(df_train_encoded, df_test_encoded):
                 total_test = len(y_test_fold)
                 acc_test = (correct_test / total_test) * 100
                 loss_test = loss_fn(y_logits_test, y_test_fold)
-                #mcc_val = matthews_corrcoef(y_test_fold.to('cpu').numpy(), y_pred_test.to('cpu').numpy())
+                mcc_val = matthews_corrcoef(y_test_fold.to('cpu').numpy(), y_pred_test.to('cpu').numpy())
 
                 test_losses.append(loss_test.item())
                 test_accuracies.append(acc_test)
@@ -98,7 +98,7 @@ def train_model(df_train_encoded, df_test_encoded):
 
         print(
             f"Epoch [{epoch + 1}/{epochs}], Ones(% of 1): {percentageOfOnes:.4f}, Train Loss: {avg_train_loss:.4f}, Train Accuracy:"
-            f"{avg_train_acc:.2f}%, Test Loss: {avg_test_loss:.4f}, Test Accuracy: {avg_test_acc:.2f}%, MCC: ")
+            f"{avg_train_acc:.2f}%, Test Loss: {avg_test_loss:.4f}, Test Accuracy: {avg_test_acc:.2f}%, MCC: {mcc_val:.4f}")
 
     end_time = time.time()
     elapsed_time = end_time - start_time
@@ -118,7 +118,10 @@ def generate_submission(X_eval, set_to_evaluate, model):
         set_to_evaluate['Label'] = torch.round(y_pred_eval).numpy()
         set_to_evaluate['Label'] = set_to_evaluate['Label'].astype(int)
         set_to_evaluate = set_to_evaluate[['Label', 'Probability_0', 'Probability_1']]
-        set_to_evaluate.to_csv('evaluation_results.csv', index=False)
+        df = set_to_evaluate[['Label', 'Probability_0', 'Probability_1']]
+        df['Probability_0'] = df['Probability_0'].round(2)
+        df['Probability_1'] = df['Probability_1'].round(2)
+        set_to_evaluate.to_csv('ReAdmitNet_pokusaj3__7_3_2024.csv', index=False)
     print(set_to_evaluate)
     return set_to_evaluate
 
@@ -130,7 +133,7 @@ def train_and_generate_submission(df_train_encoded, df_test_encoded):
 
 if __name__ == "__main__":
     X_eval, set_to_evaluate, model = train_model(
-        df_train_encoded = pd.read_csv('./Tim_22/Podaci/train_modified_encoded.csv'),
-        df_test_encoded = pd.read_csv('./Tim_22/Podaci/test_modified_encoded.csv')
+        df_train_encoded = pd.read_csv('./Tim_22/Podaci/train_modified_pesti_encoded.csv'),
+        df_test_encoded = pd.read_csv('./Tim_22/Podaci/test_modified_pesti_encoded.csv')
     )
     generate_submission(X_eval, set_to_evaluate, model)

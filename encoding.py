@@ -3,8 +3,8 @@ from sklearn.preprocessing import OneHotEncoder, LabelEncoder, StandardScaler
 from imblearn.over_sampling import SMOTE, ADASYN
 
 ## Promjenit ovu liniju za neki drugi csv file
-train_path = "./Tim_22/Podaci/train_modified.csv"
-test_path = "./Tim_22/Podaci/test_modified.csv"
+train_path = "./Tim_22/Podaci/train_modified_pesti.csv"
+test_path = "./Tim_22/Podaci/test_modified_pesti.csv"
 savepath_train = train_path.split(".csv")[0] + "_encoded.csv"
 savepath_test = test_path.split(".csv")[0] + "_encoded.csv"
 
