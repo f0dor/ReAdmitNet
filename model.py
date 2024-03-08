@@ -13,9 +13,9 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 class Model(nn.Module):
     def __init__(self):
         super(Model, self).__init__()
-        self.fc1 = nn.Linear(in_features=323, out_features=32)
+        self.fc1 = nn.Linear(in_features=323, out_features=64)
         # self.fc2 = nn.Linear(in_features=32, out_features=16)
-        self.fc3 = nn.Linear(in_features=32, out_features=1)
+        self.fc3 = nn.Linear(in_features=64, out_features=1)
         self.relu = nn.ReLU()
 
     def forward(self, x):
