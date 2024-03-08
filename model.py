@@ -1,3 +1,5 @@
+import datetime
+
 import torch
 import torch.nn as nn
 import pandas as pd
@@ -5,6 +7,7 @@ from sklearn.model_selection import train_test_split
 import time
 from sklearn.model_selection import KFold
 from sklearn.metrics import matthews_corrcoef
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score, confusion_matrix
 
 
 class Model(nn.Module):
@@ -23,7 +26,7 @@ class Model(nn.Module):
 
 
 def train_model(df_train_encoded, df_test_encoded):
-    global percentageOfOnes
+    global percentageOfOnes, y_test_fold
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
     X_eval = torch.tensor(df_test_encoded.drop('Label', axis=1).values, dtype=torch.float32)
@@ -96,14 +99,25 @@ def train_model(df_train_encoded, df_test_encoded):
         avg_test_loss = sum(test_losses) / len(test_losses)
         avg_test_acc = sum(test_accuracies) / len(test_accuracies)
 
-        print(
-            f"Epoch [{epoch + 1}/{epochs}], Ones(% of 1): {percentageOfOnes:.4f}, Train Loss: {avg_train_loss:.4f}, Train Accuracy:"
-            f"{avg_train_acc:.2f}%, Test Loss: {avg_test_loss:.4f}, Test Accuracy: {avg_test_acc:.2f}%, MCC: {mcc_val:.4f}")
+        if (epoch + 1) % 10 == 0:
+            print(
+                f"\nEpoch [{epoch + 1}/{epochs}], Ones(% of 1): {percentageOfOnes:.4f}, Train Loss: {avg_train_loss:.4f}, Train Accuracy:"
+                f"{avg_train_acc:.2f}%, Test Loss: {avg_test_loss:.4f}, Test Accuracy: {avg_test_acc:.2f}%, MCC: {mcc_val:.4f}")
+            evaluate_model(y_test_fold, y_pred_test, threshold=0.5)
+
+        if (epoch + 1) % 4001 == 0:
+            generate_submission(X_eval, df_test_encoded, model)
+            current_datetime = datetime.datetime.now()
+            formatted_datetime = current_datetime.strftime("%Y_%m_%d_%H_%M_%S")
+            torch.save(model.state_dict(), f'./results/trained_model(4001)_{formatted_datetime}.pth')
 
     end_time = time.time()
     elapsed_time = end_time - start_time
     print(f"Training time: {elapsed_time:.2f}s")
-    # torch.save(model.state_dict(), 'trained_model.pth')
+
+    current_datetime = datetime.datetime.now()
+    formatted_datetime = current_datetime.strftime("%Y_%m_%d_%H_%M_%S")
+    torch.save(model.state_dict(), f'./results/trained_model_{formatted_datetime}.pth')
     return X_eval, df_test_encoded, model
 
 
@@ -118,10 +132,10 @@ def generate_submission(X_eval, set_to_evaluate, model):
         set_to_evaluate['Label'] = torch.round(y_pred_eval).numpy()
         set_to_evaluate['Label'] = set_to_evaluate['Label'].astype(int)
         set_to_evaluate = set_to_evaluate[['Label', 'Probability_0', 'Probability_1']]
-        df = set_to_evaluate[['Label', 'Probability_0', 'Probability_1']]
-        df['Probability_0'] = df['Probability_0'].round(2)
-        df['Probability_1'] = df['Probability_1'].round(2)
-        set_to_evaluate.to_csv('ReAdmitNet_pokusaj3__7_3_2024.csv', index=False)
+        current_datetime = datetime.datetime.now()
+        formatted_datetime = current_datetime.strftime("%Y_%m_%d_%H_%M_%S")
+        set_to_evaluate.to_csv(f'./results/ReAdmitNet_pokusaj4__{formatted_datetime}.csv', index=False)
+        set_to_evaluate.to_csv('ReAdmitNet_pokusaj4__7_3_2024.csv', index=False)
     print(set_to_evaluate)
     return set_to_evaluate
 
@@ -131,9 +145,20 @@ def train_and_generate_submission(df_train_encoded, df_test_encoded):
     return generate_submission(_X_eval, _set_to_evaluate, _model)
 
 
+def evaluate_model(y_true, y_pred, threshold=0.5):
+    y_pred_binary = (y_pred >= threshold).float()  # Convert to float instead of using astype
+    accuracy = accuracy_score(y_true, y_pred_binary)
+    precision = precision_score(y_true, y_pred_binary, zero_division=0)  # Set zero_division parameter to handle warnings
+    recall = recall_score(y_true, y_pred_binary)
+    f1 = f1_score(y_true, y_pred_binary)
+    roc_auc = roc_auc_score(y_true, y_pred)
+    cm = confusion_matrix(y_true, y_pred_binary)
+    print(f"\nAccuracy: {accuracy:.2f}, Precision: {precision:.2f}, Recall: {recall:.2f}, F1 Score: {f1:.2f}, ROC AUC: {roc_auc:.2f}, Confusion Matrix: [{cm[0]} {cm[1]}]")
+
+
 if __name__ == "__main__":
     X_eval, set_to_evaluate, model = train_model(
-        df_train_encoded = pd.read_csv('./Tim_22/Podaci/train_modified_pesti_encoded.csv'),
-        df_test_encoded = pd.read_csv('./Tim_22/Podaci/test_modified_pesti_encoded.csv')
+        df_train_encoded=pd.read_csv('./Tim_22/Podaci/train_modified_pesti_encoded.csv'),
+        df_test_encoded=pd.read_csv('./Tim_22/Podaci/test_modified_pesti_encoded.csv')
     )
     generate_submission(X_eval, set_to_evaluate, model)
