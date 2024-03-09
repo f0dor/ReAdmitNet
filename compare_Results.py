@@ -1,8 +1,8 @@
 import pandas as pd
 
 # Load the two CSV files
-file1 = pd.read_csv('./results/ReAdmitNet_pokusaj4__2024_03_08_18_00_36.csv')
-file2 = pd.read_csv('./results/ReAdmitNet_pokusaj4__2024_03_08_17_50_30.csv')
+file1 = pd.read_csv('./results/ReAdmitNet_pokusaj4__2024_03_08_17_27_50.csv')
+file2 = pd.read_csv('./results/ReAdmitNet_pokusaj4__2024_03_08_17_36_06.csv')
 
 # Count the number of ones in each file
 ones_file1 = (file1['Label'] == 1).sum()
