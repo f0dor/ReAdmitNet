@@ -10,6 +10,7 @@ savepath_test = test_path.split(".csv")[0] + "_encoded2.csv"
 
 def main():
     df_train = pd.read_csv(train_path)
+    df_train = df_train.sample(frac=1).reset_index(drop=True)
     df_test = pd.read_csv(test_path)
     df_train = df_train.iloc[:, 1:]
     labels_train = df_train['Label']
@@ -66,9 +67,9 @@ def main():
     X_train, y_train = smote.fit_resample(df_train.drop('Label', axis=1), df_train['Label'])
     df_train = pd.concat([X_train, y_train], axis=1)
     '''
-    adasyn = ADASYN()
-    X_train, y_train = adasyn.fit_resample(df_train.drop('Label', axis=1), df_train['Label'])
-    df_train = pd.concat([X_train, y_train], axis=1)
+    # adasyn = ADASYN()
+    # X_train, y_train = adasyn.fit_resample(df_train.drop('Label', axis=1), df_train['Label'])
+    # df_train = pd.concat([X_train, y_train], axis=1)
 
     # Save the encoded dataframe to a new CSV file
     df_train.to_csv(savepath_train, index=False)

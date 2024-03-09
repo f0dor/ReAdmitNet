@@ -3,7 +3,7 @@ import pandas as pd
 ## Promjenit ovu liniju za neki drugi csv file
 originalpath = "./Tim_22/Podaci/test.csv"
 
-savepath = originalpath.split(".csv")[0] + "_modified.csv"
+savepath = originalpath.split(".csv")[0] + "_modified_shuffle.csv"
 
 
 def main():
@@ -61,9 +61,8 @@ def main():
     df['Education'] = df['Education'].fillna(mode_education)
     df['Current_Work_Status'] = df.apply(lambda row: replace_missing(row, mode_work_status), axis=1)
     df = df[df['Discharge_Status'] != 'UMRO (NIJE OBDUCIRAN)']
-
-    df = remove_trailing_whitespace(df)
-
+    
+    df = df.sample(frac=1).reset_index(drop=True)
     df.to_csv(savepath, index=False)
 
 

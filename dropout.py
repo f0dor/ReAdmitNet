@@ -5,6 +5,7 @@ import pandas as pd
 from sklearn.metrics import matthews_corrcoef
 from sklearn.model_selection import KFold
 import time
+import matplotlib.pyplot as plt
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -16,36 +17,51 @@ X_eval = X_eval.to(device)
 
 X = data.drop(columns=['Label'])
 y = data['Label']
+
+# Calculate class weights
+class_counts = y.sum()
+class_lengths = len(y)
+class_weights = [class_counts / class_lengths, 1 - (class_counts / class_lengths)]
+
 class Model(nn.Module):
     def __init__(self):
         super(Model, self).__init__()
-        self.fc1 = nn.Linear(in_features=323, out_features=32)
-        #self.fc2 = nn.Linear(in_features=256, out_features=128)
-        self.fc3 = nn.Linear(in_features=32, out_features=1)
+        self.fc1 = nn.Linear(in_features=323, out_features=128)
+        self.fc2 = nn.Linear(in_features=128, out_features=64)
+        self.fc3 = nn.Linear(in_features=64, out_features=32)
+        self.fc4 = nn.Linear(in_features=32, out_features=1)
         self.relu = nn.ReLU()
-        self.dropout = nn.Dropout(p=0.5)
+        self.dropout = nn.Dropout(p=0.2)
 
     def forward(self, x):
         x = self.relu(self.fc1(x))
         x = self.dropout(x)
-        #x = self.relu(self.fc2(x))
-        #x = self.dropout(x)
-        x = self.fc3(x)
+        x = self.relu(self.fc2(x))
+        x = self.dropout(x)
+        x = self.relu(self.fc3(x))
+        x = self.dropout(x)
+        x = self.fc4(x)
         return x
 
 model = Model().to(device)
 
-loss_fn = nn.BCEWithLogitsLoss()
+loss_fn = nn.BCEWithLogitsLoss(pos_weight=torch.tensor(93/100))
 optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
 
 X = torch.tensor(X.values, dtype=torch.float32).to(device)
 y = torch.tensor(y.values, dtype=torch.float32).to(device)
 
-epochs = 200
+epochs = 100
 kf = KFold(n_splits=5, shuffle=True, random_state=42)
 start_time = time.time()
 
 batch_size = 256
+
+avg_train_accs = []
+avg_test_accs = []
+avg_train_losses = []
+avg_test_losses = []
+mccs = []
 
 for epoch in range(epochs):
     model.train()
@@ -96,6 +112,12 @@ for epoch in range(epochs):
     avg_train_acc = sum(train_accuracies) / len(train_accuracies)
     avg_test_loss = sum(test_losses) / len(test_losses)
     avg_test_acc = sum(test_accuracies) / len(test_accuracies)
+
+    avg_train_accs.append(avg_train_acc)
+    avg_test_accs.append(avg_test_acc)
+    avg_train_losses.append(avg_train_loss)
+    avg_test_losses.append(avg_test_loss)
+    mccs.append(mcc_val)
     
     print(f"Epoch [{epoch+1}/{epochs}], Train Loss: {avg_train_loss:.4f}, Train Accuracy: {avg_train_acc:.2f}%, Test Loss: {avg_test_loss:.4f}, Test Accuracy: {avg_test_acc:.2f}%, MCC: {mcc_val:.4f}")
 
@@ -118,3 +140,31 @@ with torch.no_grad():
     set_to_evaluate['Label'] = torch.round(y_pred_eval).cpu().numpy().astype(int)
     set_to_evaluate = set_to_evaluate[['Label', 'Probability_0', 'Probability_1']]
     set_to_evaluate.to_csv('evaluation_results.csv', index=False)
+
+plt.figure(figsize=(10,5))
+
+# Plotting accuracies
+plt.subplot(1, 2, 1)
+plt.plot(range(1, epochs+1), avg_train_accs, label='Train Accuracy')
+plt.plot(range(1, epochs+1), avg_test_accs, label='Test Accuracy')
+plt.xlabel('Epoch')
+plt.ylabel('Accuracy')
+plt.legend()
+
+# Plotting losses
+plt.subplot(1, 2, 2)
+plt.plot(range(1, epochs+1), avg_train_losses, label='Train Loss')
+plt.plot(range(1, epochs+1), avg_test_losses, label='Test Loss')
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.legend()
+
+# Plotting MCC
+plt.figure(figsize=(10,5))
+plt.plot(range(1, epochs+1), mccs, label='MCC')
+plt.xlabel('Epoch')
+plt.ylabel('MCC')
+plt.legend()
+
+plt.tight_layout()
+plt.show()
